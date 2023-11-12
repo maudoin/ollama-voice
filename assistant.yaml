@@ -1,0 +1,13 @@
+whisperRecognition:
+  modelPath: "whisper/large-v3.pt"
+  lang: "fr"
+
+ollama:
+  url: "http://localhost:11434/api/generate"
+  model: "mistral"
+
+conversation:
+  context: "This is a discussion in french.\\n"
+  greeting: " Je vous écoute."
+  recognitionWaitMsg: " J'interprète votre demande."
+  llmWaitMsg: " Laissez moi réfléchir."

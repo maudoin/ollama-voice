@@ -1,0 +1,12 @@
+cuda-python==12.3.0
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.1.0+cu121
+torchvision==0.16.0+cu121
+torchaudio==2.1.0+cu121
+pyttsx3==2.90
+blobfile==2.1.1
+openai==1.2.3
+Wave==0.0.2
+openai-whisper @ git+https://github.com/openai/whisper.git@fcfeaf1b61994c071bba62da47d7846933576ac9
+PyAudio==0.2.14
+pyyaml==6.0.1
