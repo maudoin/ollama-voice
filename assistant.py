@@ -12,10 +12,11 @@ from yaml import Loader
 if sys.version_info[0:3] != (3, 9, 13):
     print('Warning, it was only tested with python 3.9.13, it may fail')
 
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 16000
-CHUNK = 1024
+INPUT_DEFAULT_DURATION_SECONDS = 5
+INPUT_FORMAT = pyaudio.paInt16
+INPUT_CHANNELS = 1
+INPUT_RATE = 16000
+INPUT_CHUNK = 1024
 OLLAMA_REST_HEADERS = {'Content-Type': 'application/json',}
 INPUT_CONFIG_PATH ="assistant.yaml"
     
@@ -24,11 +25,11 @@ class Assistant:
 
 
     def __init__(self):
-        self.config = self.initConfig()        
-        self.audio = pyaudio.PyAudio()
+        self.config = self.initConfig()    
         print("Loading Whisper model...")
         self.model = whisper.load_model(self.config.whisperRecognition.modelPath)
-        self.tts = pyttsx3.init()
+        self.tts = pyttsx3.init()    
+        self.audio = pyaudio.PyAudio()
         self.conversation_history = [self.config.conversation.context+self.config.conversation.greeting+"\n"]
 
 
@@ -60,15 +61,15 @@ class Assistant:
 
         return config
 
-    def waveform_from_mic(self, duration=5) -> np.ndarray:
+    def waveform_from_mic(self, duration=INPUT_DEFAULT_DURATION_SECONDS) -> np.ndarray:
 
-        stream = self.audio.open(format=FORMAT, channels=CHANNELS,
-                                 rate=RATE, input=True,
-                                 frames_per_buffer=CHUNK)
+        stream = self.audio.open(format=INPUT_FORMAT, channels=INPUT_CHANNELS,
+                                 rate=INPUT_RATE, input=True,
+                                 frames_per_buffer=INPUT_CHUNK)
         frames = []
 
-        for _ in range(0, int(RATE / CHUNK * duration)):
-            data = stream.read(CHUNK)
+        for _ in range(0, int(INPUT_RATE / INPUT_CHUNK * duration)):
+            data = stream.read(INPUT_CHUNK)
             frames.append(data)
 
         stream.stop_stream()
