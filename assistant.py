@@ -19,6 +19,8 @@ REC_SIZE = 80
 FONT_SIZE = 24
 WIDTH = 320
 HEIGHT = 240
+KWIDTH = 20
+KHEIGHT = 6
 MAX_TEXT_LEN_DISPLAY = 32
 
 
@@ -129,8 +131,29 @@ class Assistant:
         pygame.display.flip()
 
     def display_sound_energy(self, energy):
+        COL_COUNT = 5
+        RED_CENTER = 150
+        FACTOR = 10
+        MAX_AMPLITUDE = 100
+
         self.windowSurface.fill(BACK_COLOR)
-        pygame.draw.circle(self.windowSurface, TEXT_COLOR, (WIDTH/2, HEIGHT/2), energy*min(WIDTH, HEIGHT))
+        amplitude = int(MAX_AMPLITUDE*energy)
+        hspace, vspace = 2*KWIDTH, int(KHEIGHT/2)
+        def rect_coords(x, y):
+            return (int(x-KWIDTH/2), int(y-KHEIGHT/2),
+                    KWIDTH, KHEIGHT)
+        for i in range(-int(np.floor(COL_COUNT/2)), int(np.ceil(COL_COUNT/2))):
+            x, y, count = WIDTH/2+(i*hspace), HEIGHT/2, amplitude-2*abs(i)    
+            
+            mid = int(np.ceil(count/2))
+            for i in range(0, mid):
+                color = (RED_CENTER+(FACTOR*(i % mid)), 0, 0)
+                offset = i*(KHEIGHT+vspace)
+                pygame.draw.rect(self.windowSurface, color, 
+                                rect_coords(x, y+offset))
+                #mirror:
+                pygame.draw.rect(self.windowSurface, color, 
+                                rect_coords(x, y-offset))
         pygame.display.flip()
 
     def display_message(self, text):
