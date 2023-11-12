@@ -1,2 +1,3 @@
 pytorch_model_*.bin
 whisper/**
+temp.wav

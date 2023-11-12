@@ -24,7 +24,5 @@ Leave `space` key pressed to talk, the AI will interpret the query when you rele
 
 ## Todo
 
-- Fix the prompt
 - Rearrange code base
-- Some audio visualization in the UI
-- Multi threading to overlap queries/rendering with response generation
+- Multi threading to overlap tts and speed recognition (ollama is already running remotely in parallel)

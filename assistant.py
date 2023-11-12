@@ -7,6 +7,7 @@ import torch
 import requests
 import json
 import yaml
+import wave
 from yaml import Loader
 import pygame, sys
 import pygame.locals
@@ -18,6 +19,7 @@ REC_SIZE = 80
 FONT_SIZE = 24
 WIDTH = 320
 HEIGHT = 240
+MAX_TEXT_LEN_DISPLAY = 32
 
 
 
@@ -47,6 +49,9 @@ class Assistant:
         self.font = pygame.font.SysFont(None, FONT_SIZE)
 
         self.audio = pyaudio.PyAudio()
+        
+        self.tts = pyttsx3.init()    
+
         try:
             self.audio.open(format=INPUT_FORMAT, 
                             channels=INPUT_CHANNELS,
@@ -56,16 +61,15 @@ class Assistant:
         except :        
             self.wait_exit()
 
+        self.text_to_speech(self.config.messages.loadingModel)
         self.display_message(self.config.messages.loadingModel)
         self.model = whisper.load_model(self.config.whisperRecognition.modelPath)
-        self.tts = pyttsx3.init()    
         #self.conversation_history = [self.config.conversation.context,
         #                             self.config.conversation.greeting]
         self.context = []
 
-        self.display_ready()
-
         self.text_to_speech(self.config.conversation.greeting)
+        self.display_message(self.config.messages.pressSpace)
 
     def wait_exit(self):
         while True:
@@ -124,17 +128,24 @@ class Assistant:
         pygame.draw.circle(self.windowSurface, REC_COLOR, (WIDTH/2, HEIGHT/2), REC_SIZE)
         pygame.display.flip()
 
+    def display_sound_energy(self, energy):
+        self.windowSurface.fill(BACK_COLOR)
+        pygame.draw.circle(self.windowSurface, TEXT_COLOR, (WIDTH/2, HEIGHT/2), energy*min(WIDTH, HEIGHT))
+        pygame.display.flip()
+
     def display_message(self, text):
         self.windowSurface.fill(BACK_COLOR)
         
-        label = self.font.render(text, 1, TEXT_COLOR)
+        label = self.font.render(text 
+                                 if (len(text)<MAX_TEXT_LEN_DISPLAY) 
+                                 else (text[0:MAX_TEXT_LEN_DISPLAY]+"..."), 
+                                 1, 
+                                 TEXT_COLOR)
+        
         size = label.get_rect()[2:4]
         self.windowSurface.blit(label, (WIDTH/2 - size[0]/2, HEIGHT/2 - size[1]/2))
 
         pygame.display.flip()
-
-    def display_ready(self):
-        self.display_message(self.config.messages.pressSpace)
 
     def waveform_from_mic(self, key = pygame.K_SPACE) -> np.ndarray:
 
@@ -158,13 +169,11 @@ class Assistant:
 
         stream.stop_stream()
         stream.close()
-        
-        self.display_ready()
 
         return np.frombuffer(b''.join(frames), np.int16).astype(np.float32) * (1 / 32768.0)
 
     def speech_to_text(self, waveform):
-        self.text_to_speech(self.config.conversation.recognitionWaitMsg)
+        self.text_to_speech(self.config.conversation.recognitionWaitMsg)    
 
         transcript = self.model.transcribe(waveform, 
                                            language = self.config.whisperRecognition.lang, 
@@ -189,12 +198,12 @@ class Assistant:
                                  stream=True)
         response.raise_for_status()
 
-        print(jsonParam)
+        #print(jsonParam)
         self.text_to_speech(self.config.conversation.llmWaitMsg)    
 
         tokens = []
         for line in response.iter_lines():
-            print(line)
+            #print(line)
             body = json.loads(line)
             token = body.get('response', '')
             tokens.append(token)
@@ -213,8 +222,28 @@ class Assistant:
 
     def text_to_speech(self, text):
         print(text)
-        self.tts.say(text)
+        tempPath = 'temp.wav'
+        #self.tts.say(text)
+        self.tts.save_to_file(text , tempPath)
         self.tts.runAndWait()
+        wf = wave.open(tempPath, 'rb')
+        # open stream based on the wave object which has been input.
+        stream = self.audio.open(format =
+                        self.audio.get_format_from_width(wf.getsampwidth()),
+                        channels = wf.getnchannels(),
+                        rate = wf.getframerate(),
+                        output = True)
+        chunkSize = 1024
+        chunk = wf.readframes(chunkSize)
+        while chunk:
+            stream.write(chunk)
+            tmp = np.array(np.frombuffer(chunk, np.int16), np.float32) * (1 / 32768.0)
+            energy_of_chunk = np.sqrt(np.mean(tmp**2))
+            self.display_sound_energy(energy_of_chunk)
+            chunk = wf.readframes(chunkSize)
+
+        wf.close()    
+        self.display_message(text)
 
 def main():
 
@@ -231,13 +260,13 @@ def main():
         ass.clock.tick(60)
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN and event.key == push_to_talk_key:
-                print('Talk to me!')
                 speech = ass.waveform_from_mic(push_to_talk_key)
 
                 transcription = ass.speech_to_text(waveform=speech)
                 
                 ass.ask_ollama(transcription, ass.text_to_speech)
-                print('Done')
+                
+                ass.display_message(ass.config.messages.pressSpace)
 
             if event.type == pygame.locals.QUIT:
                 ass.shutdown()
