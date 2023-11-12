@@ -10,3 +10,4 @@ Wave==0.0.2
 openai-whisper @ git+https://github.com/openai/whisper.git@fcfeaf1b61994c071bba62da47d7846933576ac9
 PyAudio==0.2.14
 pyyaml==6.0.1
+pygame==2.5.2
