@@ -59,8 +59,8 @@ class Assistant:
         self.display_message(self.config.messages.loadingModel)
         self.model = whisper.load_model(self.config.whisperRecognition.modelPath)
         self.tts = pyttsx3.init()    
-        self.conversation_history = [self.config.conversation.context,
-                                     self.config.conversation.greeting]
+        #self.conversation_history = [self.config.conversation.context,
+        #                             self.config.conversation.greeting]
         self.context = []
 
         self.display_ready()
@@ -175,20 +175,22 @@ class Assistant:
     
     
     def ask_ollama(self, prompt, responseCallback):
-        self.text_to_speech(self.config.conversation.llmWaitMsg)    
-
-        self.conversation_history.append(prompt)
-        full_prompt = "\n".join(self.conversation_history)
+        #self.conversation_history.append(prompt)
+        #full_prompt = "\n".join(self.conversation_history)
+        full_prompt = prompt if hasattr(self, "contextSent") else (self.config.conversation.context+"\n"+prompt)
+        self.contextSent = True
         jsonParam= {"model": self.config.ollama.model,
                                         "stream":True,
                                         "context":self.context,
                                         "prompt":full_prompt}
-        print(jsonParam)
         response = requests.post(self.config.ollama.url, 
                                  json=jsonParam, 
                                  headers=OLLAMA_REST_HEADERS,
                                  stream=True)
         response.raise_for_status()
+
+        print(jsonParam)
+        self.text_to_speech(self.config.conversation.llmWaitMsg)    
 
         tokens = []
         for line in response.iter_lines():
@@ -196,9 +198,11 @@ class Assistant:
             body = json.loads(line)
             token = body.get('response', '')
             tokens.append(token)
-            # the response streams one token at a time, print that as we receive it
-            if token == "." or token == ":":
-                responseCallback("".join(tokens))
+            # the response streams one token at a time, process only at end of sentences
+            if token == "." or token == ":" or token == "!" or token == "?":
+                current_response = "".join(tokens)
+                #self.conversation_history.append(current_response)
+                responseCallback(current_response)
                 tokens = []
 
             if 'error' in body:

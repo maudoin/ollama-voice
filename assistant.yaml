@@ -12,7 +12,7 @@ ollama:
   model: "mistral"
 
 conversation:
-  context: "This is a discussion in french."
+  context: "Switch to french."
   greeting: "Je vous écoute."
   recognitionWaitMsg: "Oui."
   llmWaitMsg: "Laissez moi réfléchir."

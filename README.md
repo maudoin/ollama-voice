@@ -20,7 +20,11 @@ Configure `assistant.yaml` settings. (It is setup to work in french with ollama 
 
 Run `assistant.py`
 
+Leave `space` key pressed to talk, the AI will interpret the query when you release the key.
+
 ## Todo
 
-- Allow a full conversation with a "press to talk" function between requests
-- Process ollama json responses in stream mode to generate voice at the end of each sentence.
+- Fix the prompt
+- Rearrange code base
+- Some audio visualization in the UI
+- Multi threading to overlap queries/rendering with response generation
