@@ -1,5 +1,5 @@
 messages:
-  pressSpace: "Pressez sur espace pour parler puis relachez."
+  pressSpace: "Pressez espace pour parler puis relachez."
   loadingModel: "Chargement du modèle..."
   noAudioInput: "Erreur: Pas d'entrée son"
 
@@ -12,7 +12,7 @@ ollama:
   model: "mistral"
 
 conversation:
-  context: "Cette conversasion est intégralement en français."
+  context: "Cette conversation est intégralement en français."
   greeting: "Je vous écoute."
   recognitionWaitMsg: "Oui."
-  llmWaitMsg: "Laissez moi réfléchir."
+  llmWaitMsg: "Laissez-moi réfléchir."
